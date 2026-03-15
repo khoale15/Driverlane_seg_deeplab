@@ -10,13 +10,12 @@ import torchvision
 from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint, TQDMProgressBar
 from torch.utils.data import DataLoader
 
-# Import thêm các metrics cần thiết cho Lane Segmentation
+# metrics
 from torchmetrics.classification import JaccardIndex, Accuracy, Precision, Recall, F1Score
 
-# seed everything lightning
+# seed
 pl.seed_everything(42, workers=True)
 from dataset import ORIG_H, ORIG_W
-from visualize import plot_metrics
 
 def create_model(freeze_backbone=False, num_classes=3):
     weights = torchvision.models.segmentation.DeepLabV3_ResNet50_Weights.DEFAULT
@@ -28,6 +27,7 @@ def create_model(freeze_backbone=False, num_classes=3):
             p.requires_grad = False
     return model
 
+# helper functions
 def _safe_float(x):
     if isinstance(x, torch.Tensor):
         x = x.detach().cpu()
@@ -55,7 +55,6 @@ class MetricsHistoryCallback(pl.Callback):
         self.train_loss = []
         self.val_loss = []
         self.val_miou = []
-        # Thêm mảng lưu lịch sử các metrics mới
         self.val_precision = []
         self.val_recall = []
         self.val_f1 = []
@@ -87,14 +86,14 @@ class LaneSegLightningModule(pl.LightningModule):
         self.model = model
         self.loss_fn = nn.CrossEntropyLoss(ignore_index=-1)
         
-        # --- KHAI BÁO METRICS CHO VALIDATION ---
+        # define val metrics
         self.val_iou = JaccardIndex(task="multiclass", num_classes=num_classes, average=None, ignore_index=-1)
         self.val_acc = Accuracy(task="multiclass", num_classes=num_classes, average="macro", ignore_index=-1)
         self.val_precision = Precision(task="multiclass", num_classes=num_classes, average="macro", ignore_index=-1)
         self.val_recall = Recall(task="multiclass", num_classes=num_classes, average="macro", ignore_index=-1)
         self.val_f1 = F1Score(task="multiclass", num_classes=num_classes, average="macro", ignore_index=-1)
 
-        # --- KHAI BÁO METRICS CHO TEST ---
+        # define test_metrics
         self.test_iou = JaccardIndex(task="multiclass", num_classes=num_classes, average=None, ignore_index=-1)
         self.test_acc = Accuracy(task="multiclass", num_classes=num_classes, average="macro", ignore_index=-1)
         self.test_precision = Precision(task="multiclass", num_classes=num_classes, average="macro", ignore_index=-1)
@@ -127,7 +126,7 @@ class LaneSegLightningModule(pl.LightningModule):
         out_crop = out[:, :, :ORIG_H, :ORIG_W]
         y_crop = y[:, :ORIG_H, :ORIG_W]
 
-        # Update tất cả các metrics
+        # update metrics
         self.val_iou.update(pred_crop, y_crop)
         self.val_acc.update(pred_crop, y_crop)
         self.val_precision.update(pred_crop, y_crop)
@@ -138,7 +137,7 @@ class LaneSegLightningModule(pl.LightningModule):
         self.log("val_loss", val_loss, on_step=False, on_epoch=True, prog_bar=True, batch_size=x.size(0))
 
     def on_validation_epoch_end(self):
-        # Reset nếu đang trong bước sanity check của Lightning
+        # if sanity => reset metrics
         if self.trainer.sanity_checking:
             self.val_iou.reset()
             self.val_acc.reset()
@@ -151,7 +150,7 @@ class LaneSegLightningModule(pl.LightningModule):
         iou_t = torch.where(iou_t < 0, torch.zeros_like(iou_t), iou_t)
         miou = iou_t.mean()
 
-        # Log tổng hợp
+        # log
         self.log("val_miou", miou, on_step=False, on_epoch=True, prog_bar=True)
         self.log("val_acc", self.val_acc.compute(), on_step=False, on_epoch=True)
         self.log("val_precision", self.val_precision.compute(), on_step=False, on_epoch=True)
@@ -161,7 +160,7 @@ class LaneSegLightningModule(pl.LightningModule):
         for i, cls_iou in enumerate(iou_t):
             self.log(f"val_iou_class_{i}", cls_iou, on_step=False, on_epoch=True)
             
-        # Bắt buộc reset sau khi epoch kết thúc
+        # final reset
         self.val_iou.reset()
         self.val_acc.reset()
         self.val_precision.reset()
@@ -253,17 +252,7 @@ class LaneSegDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         
-        # Sửa logic chỗ này một chút để an toàn tuyệt đối với DataLoader
         self.persistent_workers = persistent_workers if self.num_workers > 0 else False
-        
-        if os.name == "nt" and self.num_workers > 0:
-            warnings.warn(
-                "Windows + large in-memory dataset can fail with DataLoader multiprocessing. "
-                "Falling back to num_workers=0.",
-                RuntimeWarning,
-            )
-            self.num_workers = 0
-            self.persistent_workers = False
         self.pin_memory = pin_memory
 
     def train_dataloader(self):
@@ -334,6 +323,7 @@ def train_model(model, datamodule, EPOCHS, FILE_NAME, num_classes=3):
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     output_path = checkpoint_dir / Path(FILE_NAME).name
 
+    # callbacks
     checkpoint_callback = ModelCheckpoint(
         dirpath=str(checkpoint_dir),
         filename=f"{output_path.stem}" + "-lightning-{epoch:02d}-{val_miou:.4f}",
@@ -361,6 +351,7 @@ def train_model(model, datamodule, EPOCHS, FILE_NAME, num_classes=3):
         log_every_n_steps=10,
     )
 
+    # train
     trainer.fit(lit_model, datamodule=datamodule)
 
     best_ckpt = checkpoint_callback.best_model_path
@@ -382,8 +373,6 @@ def train_model(model, datamodule, EPOCHS, FILE_NAME, num_classes=3):
     print("\nTraining completed")
     print(_format_metric_line("best_miou", best_miou))
     print(_format_metric_line("weights_file", str(output_path)))
-
-    plot_metrics(history_callback.train_loss, history_callback.val_loss, history_callback.val_miou)
 
     results = {
         "best_miou": best_miou,
