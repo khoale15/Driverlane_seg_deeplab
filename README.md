@@ -93,26 +93,26 @@ Interpretation:
 ## Training Preview Visualizations
 
 ### Preview 1
-![Train Preview 000](outputs/preview/train_preview_000.png)
+![Train Preview 000](output/preview/train_preview_000.png)
 
 ### Preview 2
-![Train Preview 001](outputs/preview/train_preview_001.png)
+![Train Preview 001](output/preview/train_preview_001.png)
 
 ### Preview 3
-![Train Preview 002](outputs/preview/train_preview_002.png)
+![Train Preview 002](output/preview/train_preview_002.png)
 
 ---
 
 ## Prediction Comparison Visualizations
 
 ### Prediction Compare 1
-![Prediction Compare 000](outputs/predictions/sample_000_compare.png)
+![Prediction Compare 000](output/predictions/sample_000_compare.png)
 
 ### Prediction Compare 2
-![Prediction Compare 001](outputs//predictions/sample_001_compare.png)
+![Prediction Compare 001](output/predictions/sample_001_compare.png)
 
 ### Prediction Compare 3
-![Prediction Compare 002](outputs//predictions/sample_002_compare.png)
+![Prediction Compare 002](output/predictions/sample_002_compare.png)
 
 ---
 
