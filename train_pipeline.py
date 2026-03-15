@@ -15,7 +15,6 @@ import torch
 
 from dataset import BDDDataset, MEAN, ORIG_H, ORIG_W, STD, load_npy_pair, split_data
 from trainer import LaneSegDataModule, LaneSegLightningModule, create_model, train_model
-from visualize import COLOR_MAP
 
 
 FILE_NAME = "checkpoints/best.pt"
@@ -23,6 +22,12 @@ SEED = 42
 NUM_CLASSES = 3
 EPOCHS = 100
 
+# visualized colors: red - lane, green - background, black - ignore
+COLOR_MAP = np.array([
+    [255, 0, 0],
+    [0, 255, 0],
+    [0, 0, 0],
+], dtype=np.uint8)
 
 def set_seed(seed: int = SEED) -> None:
     torch.manual_seed(seed)
@@ -46,13 +51,12 @@ def prepare_output_dirs(base_dir: str = "outputs") -> dict[str, Path]:
         p.mkdir(parents=True, exist_ok=True)
     return paths
 
-
+# deno img tensor CHW -> HWC uint8 for visualization
 def denormalize_image(img_chw: torch.Tensor) -> np.ndarray:
     img = img_chw * STD + MEAN
     img = img.clamp(0, 1)
     img = (img * 255).permute(1, 2, 0).byte().cpu().numpy()
     return img[:ORIG_H, :ORIG_W]
-
 
 def save_dataset_preview(images: np.ndarray, labels: np.ndarray, out_dir: Path, k: int = 5) -> None:
     k = min(k, len(images))
@@ -84,7 +88,6 @@ def save_dataset_preview(images: np.ndarray, labels: np.ndarray, out_dir: Path, 
         fig.tight_layout()
         fig.savefig(out_dir / f"train_preview_{i:03d}.png", dpi=150, bbox_inches="tight")
         plt.close(fig)
-
 
 def copy_latest_lightning_metrics(metrics_dir: Path) -> Path | None:
     logs_root = Path("lightning_logs")
