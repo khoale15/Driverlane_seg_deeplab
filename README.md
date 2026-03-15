@@ -103,13 +103,13 @@ Interpretation:
 
 ## Prediction Comparison Visualizations
 
-### Prediction Compare 1
+### Prediction 1
 ![Prediction Compare 000](output/predictions/sample_000_compare.png)
 
-### Prediction Compare 2
+### Prediction 2
 ![Prediction Compare 001](output/predictions/sample_001_compare.png)
 
-### Prediction Compare 3
+### Prediction 3
 ![Prediction Compare 002](output/predictions/sample_002_compare.png)
 
 ---
