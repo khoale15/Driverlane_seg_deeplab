@@ -22,12 +22,10 @@ The core objective is to produce robust pixel-level predictions under realistic 
 
 ```mermaid
 flowchart LR
-    A["Raw Images + Masks"] --> B["Matching + Conversion"]
-    B --> C["NumPy dataset (.npy)"]
-    C --> D["PyTorch Dataset + DataModule"]
-    D --> E["DeepLabV3-ResNet50 Training"]
-    E --> F["Validation/Test Metrics"]
-    E --> G["Prediction Visualizations"]
+    A["NumPy dataset (.npy)"] --> B["PyTorch Dataset + DataModule"]
+    B --> C["DeepLabV3-ResNet50 Training"]
+    C --> D["Validation/Test Metrics"]
+    D --> E["Prediction Visualizations"]
 ```
 
 ---
