@@ -1,0 +1,25 @@
+[project]
+name = "code"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "kagglehub>=1.0.0",
+  "lightning>=2.6.1",
+  "matplotlib>=3.10.8",
+  "numpy>=2.3.5",
+  "opencv-python-headless>=4.13.0.92",
+  "torch",
+  "torchmetrics>=1.0.3",
+  "torchvision",
+  "webdataset>=1.0.2",
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
