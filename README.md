@@ -60,7 +60,7 @@ In this project, images and labels are in numpy format:
 
 - **Backbone**: ResNet-50 (pretrained)
 - **Segmentation Head**: DeepLabV3 classifier + auxiliary head
-- **Loss**: CrossEntropy with ignore index (`-1`) + weighted auxiliary loss
+- **Loss**: CrossEntropy + weighted auxiliary loss
 - **Optimizer**: AdamW
 - **Scheduler**: ReduceLROnPlateau monitored by validation mIoU
 - **Stopping Strategy**: EarlyStopping on validation mIoU
